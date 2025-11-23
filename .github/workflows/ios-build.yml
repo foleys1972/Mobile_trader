@@ -63,39 +63,39 @@ jobs:
           # Install pods
           pod install --repo-update
       
-      - name: Build iOS for simulator (no codesign)
+      - name: Build iOS for device (no codesign)
         run: |
           cd flutter_app
-          # Build for iOS simulator in debug mode (only mode supported for simulators)
-          flutter build ios --simulator --debug --no-codesign
+          # Build for iOS device - Appetize.io needs device builds, not simulator
+          # Use --no-codesign to avoid signing requirements
+          flutter build ios --release --no-codesign || flutter build ios --debug --no-codesign
       
-      - name: Create IPA from simulator build
+      - name: Create IPA from device build
         run: |
           cd flutter_app
           # Check what was actually built
           echo "Checking build output..."
           find build/ios -name "Runner.app" -type d
-          # Create IPA from simulator build
-          if [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+          # Create IPA from device build (Appetize.io needs device builds)
+          if [ -d "build/ios/iphoneos/Runner.app" ]; then
+            cd build/ios/iphoneos
+            mkdir -p Payload
+            cp -r Runner.app Payload/
+            zip -r ../../../Runner-device.ipa Payload
+            echo "✅ Created Runner-device.ipa"
+            ls -lh ../../../Runner-device.ipa
+          elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+            echo "⚠️ Only simulator build found, creating IPA anyway..."
             cd build/ios/iphonesimulator
             mkdir -p Payload
             cp -r Runner.app Payload/
             zip -r ../../../Runner-simulator.ipa Payload
-            echo "Created Runner-simulator.ipa"
+            echo "Created Runner-simulator.ipa (may not work with Appetize.io)"
             ls -lh ../../../Runner-simulator.ipa
           else
-            echo "Simulator build not found, checking device build..."
-            if [ -d "build/ios/iphoneos/Runner.app" ]; then
-              cd build/ios/iphoneos
-              mkdir -p Payload
-              cp -r Runner.app Payload/
-              zip -r ../../../Runner-device.ipa Payload
-              echo "Created Runner-device.ipa"
-              ls -lh ../../../Runner-device.ipa
-            else
-              echo "No Runner.app found in build output"
-              find build/ios -type f -name "*.app" || echo "No .app files found"
-            fi
+            echo "❌ No Runner.app found in build output"
+            find build/ios -type d -name "*.app" || echo "No .app directories found"
+            exit 1
           fi
       
       - name: Upload IPA artifact
@@ -103,8 +103,8 @@ jobs:
         with:
           name: ios-app
           path: |
-            flutter_app/Runner-simulator.ipa
             flutter_app/Runner-device.ipa
+            flutter_app/Runner-simulator.ipa
           retention-days: 7
           if-no-files-found: warn
       
