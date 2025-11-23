@@ -35,19 +35,25 @@ jobs:
       - name: Create iOS platform support
         run: |
           cd flutter_app
-          flutter create --platforms=ios --org com.directtrader . || true
+          if [ ! -d "ios" ]; then
+            flutter create --platforms=ios --org com.directtrader .
+          else
+            echo "iOS platform already exists"
+          fi
       
       - name: Setup CocoaPods
         run: |
           cd flutter_app/ios
           sudo gem install cocoapods
-          pod install --repo-update || pod install
+          # Clean up any existing Podfile.lock and Pods
+          rm -rf Podfile.lock Pods .symlinks
+          # Install pods
+          pod install --repo-update
       
       - name: Build iOS (no codesign)
         run: |
           cd flutter_app
           flutter build ios --release --no-codesign
-        continue-on-error: false
       
       - name: Create IPA
         run: |
