@@ -27,6 +27,11 @@ jobs:
           cd flutter_app
           flutter pub get
       
+      - name: Create iOS platform support
+        run: |
+          cd flutter_app
+          flutter create --platforms=ios .
+      
       - name: Build iOS (no codesign)
         run: |
           cd flutter_app
