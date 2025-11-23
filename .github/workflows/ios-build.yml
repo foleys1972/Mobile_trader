@@ -61,8 +61,8 @@ jobs:
       - name: Build iOS for simulator (no codesign)
         run: |
           cd flutter_app
-          # Build for iOS simulator in profile mode (release-like but works with simulator)
-          flutter build ios --simulator --profile --no-codesign
+          # Build for iOS simulator in debug mode (only mode supported for simulators)
+          flutter build ios --simulator --debug --no-codesign
       
       - name: Create IPA from simulator build
         run: |
