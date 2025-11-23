@@ -71,17 +71,31 @@ jobs:
       
       - name: Create IPA from simulator build
         run: |
-          cd flutter_app/build/ios/iphonesimulator
+          cd flutter_app
+          # Check what was actually built
+          echo "Checking build output..."
+          find build/ios -name "Runner.app" -type d
           # Create IPA from simulator build
-          mkdir -p Payload
-          cp -r Runner.app Payload/
-          zip -r ../../../../Runner-simulator.ipa Payload
-          # Also try to create from device build if it exists
-          if [ -d "../iphoneos/Runner.app" ]; then
-            cd ../iphoneos
+          if [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+            cd build/ios/iphonesimulator
             mkdir -p Payload
             cp -r Runner.app Payload/
-            zip -r ../../../../Runner-device.ipa Payload
+            zip -r ../../../Runner-simulator.ipa Payload
+            echo "Created Runner-simulator.ipa"
+            ls -lh ../../../Runner-simulator.ipa
+          else
+            echo "Simulator build not found, checking device build..."
+            if [ -d "build/ios/iphoneos/Runner.app" ]; then
+              cd build/ios/iphoneos
+              mkdir -p Payload
+              cp -r Runner.app Payload/
+              zip -r ../../../Runner-device.ipa Payload
+              echo "Created Runner-device.ipa"
+              ls -lh ../../../Runner-device.ipa
+            else
+              echo "No Runner.app found in build output"
+              find build/ios -type f -name "*.app" || echo "No .app files found"
+            fi
           fi
       
       - name: Upload IPA artifact
@@ -89,8 +103,8 @@ jobs:
         with:
           name: ios-app
           path: |
-            flutter_app/build/ios/Runner-simulator.ipa
-            flutter_app/build/ios/Runner-device.ipa
+            flutter_app/Runner-simulator.ipa
+            flutter_app/Runner-device.ipa
           retention-days: 7
           if-no-files-found: warn
       
