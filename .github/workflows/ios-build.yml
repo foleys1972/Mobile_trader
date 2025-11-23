@@ -48,16 +48,10 @@ jobs:
           if [ -f "Runner.xcodeproj/project.pbxproj" ]; then
             sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [^;]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' Runner.xcodeproj/project.pbxproj
           fi
-          # Ensure post_install sets deployment target - append if not present
-          if ! grep -q "IPHONEOS_DEPLOYMENT_TARGET" Podfile; then
-            echo "" >> Podfile
-            echo "post_install do |installer|" >> Podfile
-            echo "  installer.pods_project.targets.each do |target|" >> Podfile
-            echo "    target.build_configurations.each do |config|" >> Podfile
-            echo "      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'" >> Podfile
-            echo "    end" >> Podfile
-            echo "  end" >> Podfile
-            echo "end" >> Podfile
+          # Update existing post_install to add deployment target if not present
+          if grep -q "post_install" Podfile && ! grep -q "IPHONEOS_DEPLOYMENT_TARGET" Podfile; then
+            # Insert deployment target code before the final 'end' of post_install
+            awk '/post_install do \|installer\|/,/^end$/ { if (/^end$/ && prev_line !~ /^end$/) { print "  installer.pods_project.targets.each do |target|"; print "    target.build_configurations.each do |config|"; print "      config.build_settings[\"IPHONEOS_DEPLOYMENT_TARGET\"] = \"13.0\""; print "    end"; print "  end"; } prev_line=$0; print; next } 1' Podfile > Podfile.tmp && mv Podfile.tmp Podfile
           fi
           # Show Podfile to verify
           tail -10 Podfile
