@@ -58,24 +58,36 @@ jobs:
           # Install pods
           pod install --repo-update
       
-      - name: Build iOS (no codesign)
+      - name: Build iOS for simulator (no codesign)
         run: |
           cd flutter_app
-          flutter build ios --release --no-codesign
+          # Build for iOS simulator (doesn't require code signing)
+          flutter build ios --simulator --release --no-codesign
       
-      - name: Create IPA
+      - name: Create IPA from simulator build
         run: |
-          cd flutter_app/build/ios/iphoneos
+          cd flutter_app/build/ios/iphonesimulator
+          # Create IPA from simulator build
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r ../../../../Runner.ipa Payload
+          zip -r ../../../../Runner-simulator.ipa Payload
+          # Also try to create from device build if it exists
+          if [ -d "../iphoneos/Runner.app" ]; then
+            cd ../iphoneos
+            mkdir -p Payload
+            cp -r Runner.app Payload/
+            zip -r ../../../../Runner-device.ipa Payload
+          fi
       
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: flutter_app/build/ios/iphoneos/Runner.ipa
+          path: |
+            flutter_app/build/ios/Runner-simulator.ipa
+            flutter_app/build/ios/Runner-device.ipa
           retention-days: 7
+          if-no-files-found: warn
       
       - name: Build info
         run: |
