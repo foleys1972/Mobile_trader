@@ -48,40 +48,19 @@ jobs:
           if [ -f "Runner.xcodeproj/project.pbxproj" ]; then
             sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [^;]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' Runner.xcodeproj/project.pbxproj
           fi
-          # Update post_install to force all pods to use iOS 13.0
-          python3 << 'PYEOF'
-          with open('Podfile', 'r') as f:
-              content = f.read()
-          if 'IPHONEOS_DEPLOYMENT_TARGET' not in content or 'post_install' not in content:
-              # Add post_install block if it doesn't exist
-              if 'post_install' not in content:
-                  content += '''
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
-    end
-  end
-end
-'''
-          else:
-              # Update existing post_install
-              import re
-              def update_post_install(match):
-                  post_install = match.group(0)
-                  if "IPHONEOS_DEPLOYMENT_TARGET" not in post_install:
-                      # Insert before the final 'end'
-                      post_install = post_install.rsplit('end', 1)[0] + "    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'\n  end\nend"
-                  else:
-                      post_install = re.sub(r"IPHONEOS_DEPLOYMENT_TARGET.*=.*['\"][^'\"]*['\"]", "IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'", post_install)
-                  return post_install
-              content = re.sub(r'post_install do.*?^end', update_post_install, content, flags=re.MULTILINE | re.DOTALL)
-          with open('Podfile', 'w') as f:
-              f.write(content)
-          print('Updated Podfile with deployment target 13.0')
-          PYEOF
+          # Ensure post_install sets deployment target - append if not present
+          if ! grep -q "IPHONEOS_DEPLOYMENT_TARGET" Podfile; then
+            echo "" >> Podfile
+            echo "post_install do |installer|" >> Podfile
+            echo "  installer.pods_project.targets.each do |target|" >> Podfile
+            echo "    target.build_configurations.each do |config|" >> Podfile
+            echo "      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'" >> Podfile
+            echo "    end" >> Podfile
+            echo "  end" >> Podfile
+            echo "end" >> Podfile
+          fi
           # Show Podfile to verify
-          head -30 Podfile
+          tail -10 Podfile
       
       - name: Setup CocoaPods
         run: |
