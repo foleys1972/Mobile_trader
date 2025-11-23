@@ -42,15 +42,19 @@ jobs:
       - name: Update Podfile with minimum deployment target
         run: |
           cd flutter_app/ios
-          # Update Podfile to set iOS 12.0 as minimum deployment target
-          sed -i '' 's/platform :ios.*/platform :ios, "12.0"/' Podfile
+          # Update platform to iOS 13.0 (required for sqflite)
+          python3 -c "import re; content = open('Podfile').read(); content = re.sub(r'platform :ios[^\n]*', 'platform :ios, \"13.0\"', content); open('Podfile', 'w').write(content); print('Updated Podfile platform to iOS 13.0')"
+          # Also update Xcode project deployment target
+          if [ -f "Runner.xcodeproj/project.pbxproj" ]; then
+            sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [^;]*/IPHONEOS_DEPLOYMENT_TARGET = 13.0/g' Runner.xcodeproj/project.pbxproj
+          fi
+          # Show Podfile to verify
+          head -20 Podfile
       
       - name: Setup CocoaPods
         run: |
           cd flutter_app/ios
           sudo gem install cocoapods
-          # Clean up any existing Podfile.lock and Pods
-          rm -rf Podfile.lock Pods .symlinks
           # Install pods
           pod install --repo-update
       
