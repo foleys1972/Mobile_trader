@@ -14,13 +14,18 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.10.0'
           channel: 'stable'
+      
+      - name: Flutter doctor
+        run: |
+          cd flutter_app
+          flutter doctor -v
       
       - name: Get dependencies
         run: |
@@ -30,17 +35,19 @@ jobs:
       - name: Create iOS platform support
         run: |
           cd flutter_app
-          flutter create --platforms=ios --org com.directtrader .
+          flutter create --platforms=ios --org com.directtrader . || true
       
       - name: Setup CocoaPods
         run: |
           cd flutter_app/ios
-          pod install || pod install --repo-update
+          sudo gem install cocoapods
+          pod install --repo-update || pod install
       
       - name: Build iOS (no codesign)
         run: |
           cd flutter_app
           flutter build ios --release --no-codesign
+        continue-on-error: false
       
       - name: Create IPA
         run: |
@@ -50,7 +57,7 @@ jobs:
           zip -r ../../../../Runner.ipa Payload
       
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-app
           path: flutter_app/build/ios/iphoneos/Runner.ipa
