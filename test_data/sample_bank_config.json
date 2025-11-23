@@ -1,0 +1,35 @@
+{
+  "bank_id": "demo_bank",
+  "bank_name": "Demo Trading Bank",
+  "oracle_sbc_host": "sbc.demo.com",
+  "oracle_sbc_port": 5061,
+  "audiocodes_host": "audiocodes.demo.com",
+  "audiocodes_port": 5060,
+  "sip_domain": "demo.com",
+  "lines": [
+    {
+      "id": "hoot-1",
+      "name": "Trading Floor",
+      "number": "1001",
+      "type": "hoot",
+      "status": "active",
+      "participants": ["Trader A", "Trader B", "Manager"]
+    },
+    {
+      "id": "ard-1",
+      "name": "Emergency Line",
+      "number": "2001",
+      "type": "ard",
+      "status": "ready",
+      "participants": []
+    },
+    {
+      "id": "mrd-1",
+      "name": "Client A",
+      "number": "3001",
+      "type": "mrd",
+      "status": "ready",
+      "participants": []
+    }
+  ]
+}

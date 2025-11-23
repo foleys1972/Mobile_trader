@@ -1,0 +1,15 @@
+modules = ["python-3.11"]
+
+[deployment]
+run = ["sh", "-c", "cd Backend/API && pip install -r requirements.txt && python main.py"]
+
+[env]
+PYTHONPATH = "${PYTHONPATH}:${PWD}/Backend/API"
+PORT = "8000"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix", ".config"]
+
+[deployment.targets.production]
+run = ["sh", "-c", "cd Backend/API && pip install -r requirements.txt && python main.py"]
+

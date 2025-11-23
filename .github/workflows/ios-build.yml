@@ -1,0 +1,54 @@
+name: Build iOS App (Free)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest  # Free for public repos!
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: |
+          cd flutter_app
+          flutter pub get
+      
+      - name: Build iOS (no codesign)
+        run: |
+          cd flutter_app
+          flutter build ios --release --no-codesign
+      
+      - name: Create IPA
+        run: |
+          cd flutter_app/build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r ../../../../Runner.ipa Payload
+      
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-app
+          path: flutter_app/build/ios/iphoneos/Runner.ipa
+          retention-days: 7
+      
+      - name: Build info
+        run: |
+          echo "✅ iOS build complete!"
+          echo "📦 IPA file available in artifacts"
+          echo "🌐 Upload to Appetize.io to test: https://appetize.io"
+

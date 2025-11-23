@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../nice_portal/V2"
+		},
+		{
+			"path": "../intercom"
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,44 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '17.0'
+
+target 'DirectTrader' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for DirectTrader
+  pod 'linphone-sdk', '~> 5.2.0'
+  pod 'Alamofire', '~> 5.8'
+  pod 'SwiftyJSON', '~> 5.0'
+  pod 'KeychainSwift', '~> 20.0'
+  pod 'SwiftUI-Introspect', '~> 0.12'
+  
+  # Audio and networking
+  pod 'AVFoundation'
+  pod 'Network'
+  
+  # UI enhancements
+  pod 'SwiftUI-Refresh', '~> 0.1'
+  
+  target 'DirectTraderTests' do
+    inherit! :search_paths
+    # Pods for testing
+    pod 'Quick', '~> 7.0'
+    pod 'Nimble', '~> 12.0'
+  end
+
+  target 'DirectTraderUITests' do
+    # Pods for testing
+    pod 'Quick', '~> 7.0'
+    pod 'Nimble', '~> 12.0'
+  end
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '17.0'
+    end
+  end
+end
+

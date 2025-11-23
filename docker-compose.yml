@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Redis for caching and real-time data
+  redis:
+    image: redis:7-alpine
+    container_name: trading-intercom-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # MongoDB for persistent storage (optional)
+  mongodb:
+    image: mongo:6
+    container_name: trading-intercom-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    restart: unless-stopped
+
+  # Trading Intercom Backend
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: trading-intercom-backend
+    ports:
+      - "3001:3001"
+      - "3002:3002"  # Federation port
+    volumes:
+      - ./server:/app
+      - ./recordings:/app/recordings
+      - ./compliance:/app/compliance
+      - ./keys:/app/keys
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/trading_intercom?authSource=admin
+    depends_on:
+      - redis
+      - mongodb
+    restart: unless-stopped
+
+  # Trading Intercom Frontend
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: trading-intercom-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:3001
+      - REACT_APP_FEDERATION_URL=ws://localhost:3002
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: trading-intercom-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  mongodb_data:
