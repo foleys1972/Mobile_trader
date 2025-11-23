@@ -42,24 +42,8 @@ jobs:
       - name: Update Podfile with minimum deployment target
         run: |
           cd flutter_app/ios
-          # Update Podfile to set iOS 12.0 as minimum
-          if grep -q "platform :ios" Podfile; then
-            sed -i '' 's/platform :ios.*/platform :ios, '\''12.0'\''/' Podfile
-          else
-            sed -i '' '1i\
-platform :ios, '\''12.0'\''
-' Podfile
-          fi
-          # Update post_install to set deployment target
-          if ! grep -q "IPHONEOS_DEPLOYMENT_TARGET" Podfile; then
-            sed -i '' '/post_install do |installer|/a\
-  installer.pods_project.targets.each do |target|\
-    target.build_configurations.each do |config|\
-      config.build_settings['\''IPHONEOS_DEPLOYMENT_TARGET'\''] = '\''12.0'\''\
-    end\
-  end
-' Podfile
-          fi
+          # Update Podfile to set iOS 12.0 as minimum deployment target
+          sed -i '' 's/platform :ios.*/platform :ios, "12.0"/' Podfile
       
       - name: Setup CocoaPods
         run: |
