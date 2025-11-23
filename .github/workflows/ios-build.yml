@@ -30,7 +30,12 @@ jobs:
       - name: Create iOS platform support
         run: |
           cd flutter_app
-          flutter create --platforms=ios .
+          flutter create --platforms=ios --org com.directtrader .
+      
+      - name: Setup CocoaPods
+        run: |
+          cd flutter_app/ios
+          pod install || pod install --repo-update
       
       - name: Build iOS (no codesign)
         run: |
